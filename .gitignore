@@ -16,3 +16,7 @@ terraform/crash.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Local database backups
+jerney-backup.sql
+*.sql

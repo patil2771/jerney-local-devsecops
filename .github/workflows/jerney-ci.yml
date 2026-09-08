@@ -103,9 +103,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ghcr.io/${{ github.repository }}/jerney-${{ matrix.component }}:sha-${{ github.sha }}
+          version: v0.72.0
           format: table
           exit-code: "1"
           severity: CRITICAL,HIGH

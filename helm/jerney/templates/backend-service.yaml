@@ -4,9 +4,9 @@ metadata:
   name: backend
   namespace: {{ .Release.Namespace }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.backend.service.type }}
   selector:
     app: backend
   ports:
     - port: {{ .Values.backend.service.port }}
-      targetPort: {{ .Values.backend.service.port }}
+      targetPort: 5000

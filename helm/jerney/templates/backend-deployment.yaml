@@ -18,31 +18,44 @@ spec:
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.backend.service.port }}
+            - containerPort: 5000
+
           env:
             - name: DB_HOST
               value: postgres
+
             - name: DB_PORT
               value: "5432"
+
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.existingSecret }}
+                  name: postgres-secret
                   key: POSTGRES_USER
+
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.existingSecret }}
+                  name: postgres-secret
                   key: POSTGRES_PASSWORD
+
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.existingSecret }}
+                  name: postgres-secret
                   key: POSTGRES_DB
+
             - name: PORT
               value: "5000"
+
           resources:
-{{ toYaml .Values.backend.resources | indent 12 }}
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
           readinessProbe:
             httpGet:
               path: /api/health
@@ -50,6 +63,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
+
           livenessProbe:
             httpGet:
               path: /api/health

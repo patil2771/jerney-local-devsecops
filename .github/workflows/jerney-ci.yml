@@ -10,6 +10,7 @@ permissions:
   contents: read
 
 jobs:
+
   lint-and-build:
     name: Lint and Build
     runs-on: ubuntu-latest
@@ -41,6 +42,7 @@ jobs:
         working-directory: ${{ matrix.component }}
         run: npm run build --if-present
 
+
   dependency-audit:
     name: Dependency Audit
     runs-on: ubuntu-latest
@@ -69,10 +71,41 @@ jobs:
         working-directory: ${{ matrix.component }}
         run: npm audit --audit-level=high
 
+
+  helm-validation:
+    name: Helm Validation
+    runs-on: ubuntu-latest
+    needs: [lint-and-build, dependency-audit]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.18.6
+
+      - name: Lint Helm chart
+        run: helm lint helm/jerney
+
+      - name: Render Helm templates
+        run: |
+          helm template jerney-test ./helm/jerney \
+            -n jerney-helm \
+            --set ingress.enabled=false \
+            > rendered.yaml
+
+      - name: Verify rendered manifests
+        run: |
+          grep "^kind:" rendered.yaml
+          grep -E "image:|POSTGRES_|storage:" rendered.yaml
+
+
   docker-build:
     name: Build, Scan and Push Docker Images
     runs-on: ubuntu-latest
-    needs: [lint-and-build, dependency-audit]
+    needs: [lint-and-build, dependency-audit, helm-validation]
 
     permissions:
       contents: read

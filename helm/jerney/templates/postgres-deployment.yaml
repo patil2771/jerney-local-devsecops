@@ -16,21 +16,26 @@ spec:
       containers:
         - name: postgres
           image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.postgres.service.port }}
+            - containerPort: 5432
+
           envFrom:
             - secretRef:
-                name: {{ .Values.secret.existingSecret }}
+                name: postgres-secret
+
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
+
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
+              memory: "128Mi"
+              cpu: "100m"
             limits:
-              cpu: 500m
-              memory: 512Mi
+              memory: "512Mi"
+              cpu: "500m"
+
           readinessProbe:
             exec:
               command:
@@ -39,6 +44,7 @@ spec:
                 - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
             initialDelaySeconds: 5
             periodSeconds: 10
+
           livenessProbe:
             exec:
               command:
@@ -47,6 +53,7 @@ spec:
                 - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
             initialDelaySeconds: 30
             periodSeconds: 10
+
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:
